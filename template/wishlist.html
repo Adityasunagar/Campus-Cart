@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Wishlist — Campus Cart{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="section-header">
+    <h2>Your wishlist</h2>
+    <p>Find the items you saved and contact sellers when you are ready.</p>
+  </div>
+
+  {% if items %}
+    <div class="card-grid">
+      {% for item in items %}
+        <article class="card">
+          <div class="card-body">
+            <h3>{{ item['title'] }}</h3>
+            <p>{{ item['description'][:120] }}{% if item['description']|length > 120 %}...{% endif %}</p>
+          </div>
+          <div class="card-meta">
+            <span class="tag">₹{{ item['price'] }}</span>
+            <span class="owner">by {{ item['owner_name'] }}</span>
+          </div>
+          <div class="card-actions">
+            <a class="btn btn-outline" href="{{ url_for('main.item_detail', item_id=item['id']) }}">View</a>
+            <form action="{{ url_for('main.remove_wishlist', item_id=item['id']) }}" method="post">
+              <button class="btn btn-danger">Remove</button>
+            </form>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>Your wishlist is empty.</h3>
+      <p>Browse the marketplace and save items you like.</p>
+      <a class="btn btn-primary" href="{{ url_for('main.index') }}">Browse items</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,396 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard — Campus Cart{% endblock %}
+
+{% block content %}
+<section class="section">
+
+  <!-- Admin Header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-family: var(--font-display); font-size: 2.8rem; margin: 0; background: linear-gradient(135deg, #ff007f, #7928ca); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Admin Dashboard</h1>
+      <p style="color: rgba(255,255,255,0.5); margin-top: 0.4rem;">Full control over Campus Cart marketplace</p>
+    </div>
+    <span style="background: linear-gradient(135deg, #ff007f, #7928ca); padding: 0.5rem 1.2rem; border-radius: 30px; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(255,0,127,0.4);">
+      <i class="fas fa-shield-alt"></i> Super Admin
+    </span>
+  </div>
+
+  <!-- ── Analytics Cards ─────────────────────────────────── -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+    <div class="card" style="text-align: center; padding: 1.8rem 1rem; background: linear-gradient(135deg, rgba(255,0,127,0.15), rgba(121,40,202,0.15));">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👤</div>
+      <div style="font-size: 2.6rem; font-weight: 900; font-family: var(--font-display); color: #ff007f;">{{ user_stats.total }}</div>
+      <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Total Users</div>
+    </div>
+    <div class="card" style="text-align: center; padding: 1.8rem 1rem; background: linear-gradient(135deg, rgba(0,200,255,0.12), rgba(0,100,200,0.12));">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📦</div>
+      <div style="font-size: 2.6rem; font-weight: 900; font-family: var(--font-display); color: #00c8ff;">{{ item_stats.total }}</div>
+      <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Total Items</div>
+    </div>
+    <div class="card" style="text-align: center; padding: 1.8rem 1rem; background: linear-gradient(135deg, rgba(0,255,136,0.12), rgba(0,180,80,0.12));">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✅</div>
+      <div style="font-size: 2.6rem; font-weight: 900; font-family: var(--font-display); color: #00ff88;">{{ item_stats.active }}</div>
+      <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Active Listings</div>
+    </div>
+    <div class="card" style="text-align: center; padding: 1.8rem 1rem; background: linear-gradient(135deg, rgba(255,200,0,0.12), rgba(200,120,0,0.12));">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💬</div>
+      <div style="font-size: 2.6rem; font-weight: 900; font-family: var(--font-display); color: #ffb800;">{{ msg_count }}</div>
+      <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Messages</div>
+    </div>
+    <div class="card" style="text-align: center; padding: 1.8rem 1rem; background: linear-gradient(135deg, rgba(255,50,50,0.12), rgba(180,0,0,0.12));">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🚨</div>
+      <div style="font-size: 2.6rem; font-weight: 900; font-family: var(--font-display); color: #ff3333;">{{ pending_reports }}</div>
+      <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Pending Reports</div>
+    </div>
+    <div class="card" style="text-align: center; padding: 1.8rem 1rem; background: linear-gradient(135deg, rgba(255,100,0,0.12), rgba(180,50,0,0.12));">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🚫</div>
+      <div style="font-size: 2.6rem; font-weight: 900; font-family: var(--font-display); color: #ff6400;">{{ user_stats.banned }}</div>
+      <div style="font-size: 0.9rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Banned Users</div>
+    </div>
+  </div>
+
+  <!-- ── Tab Navigation ─────────────────────────────────── -->
+  <div id="users" style="scroll-margin-top: 100px;"></div>
+  <div class="admin-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; border-bottom: 2px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem;">
+    <button class="admin-tab-btn active-tab" onclick="showTab('tab-users')" style="padding: 0.8rem 1.5rem; border: none; background: linear-gradient(135deg, #ff007f, #7928ca); color: white; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 700; font-size: 0.95rem; transition: all 0.2s;">
+      <i class="fas fa-users"></i> Users
+    </button>
+    <button class="admin-tab-btn" onclick="showTab('tab-items')" style="padding: 0.8rem 1.5rem; border: none; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.2s;">
+      <i class="fas fa-box"></i> Listings
+    </button>
+    <button class="admin-tab-btn" onclick="showTab('tab-reports')" style="padding: 0.8rem 1.5rem; border: none; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; position: relative;">
+      <i class="fas fa-flag"></i> Reports
+      {% if pending_reports > 0 %}<span style="position: absolute; top: -8px; right: -8px; background: #ff3333; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; font-weight: 800;">{{ pending_reports }}</span>{% endif %}
+    </button>
+    <button class="admin-tab-btn" onclick="showTab('tab-chats')" style="padding: 0.8rem 1.5rem; border: none; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.2s;">
+      <i class="fas fa-comment-alt"></i> Chats
+    </button>
+    <button class="admin-tab-btn" onclick="showTab('tab-wishlist')" style="padding: 0.8rem 1.5rem; border: none; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.2s;">
+      <i class="fas fa-heart"></i> Wishlist
+    </button>
+  </div>
+
+  <!-- ── TAB: USERS ─────────────────────────────────────── -->
+  <div id="tab-users" class="admin-tab-content">
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0; font-size: 1.5rem;"><i class="fas fa-users" style="color: #ff007f;"></i> User Management</h2>
+        <input type="text" id="user-search" oninput="filterTable('user-search','users-table')" placeholder="🔍 Search users..." style="padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: white; width: 250px; font-size: 0.9rem;">
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="table" id="users-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr style="{% if user['is_banned'] %}opacity: 0.6;{% endif %}">
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                  <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #7928ca, #ff007f); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; flex-shrink: 0;">{{ user['username'][0]|upper }}</div>
+                  <span style="font-weight: 600;">{{ user['username'] }}</span>
+                </div>
+              </td>
+              <td style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">{{ user['email'] }}</td>
+              <td>
+                {% if user['is_admin'] %}
+                <span style="background: rgba(255,0,127,0.2); color: #ff007f; padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">Admin</span>
+                {% else %}
+                <span style="background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.8rem;">Student</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if user['is_banned'] %}
+                <span style="background: rgba(255,50,50,0.2); color: #ff3333; padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">Banned</span>
+                {% else %}
+                <span style="background: rgba(0,255,136,0.1); color: #00ff88; padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.8rem;">Active</span>
+                {% endif %}
+              </td>
+              <td style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">{{ user['created_at'].strftime('%b %d, %Y') if user['created_at'] else 'N/A' }}</td>
+              <td>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                  {% if user['id'] != current_user['id'] %}
+                  <!-- Promote/Demote -->
+                  <form action="{{ url_for('admin.toggle_role', user_id=user['id']) }}" method="post" style="display: inline;">
+                    <button type="submit" style="padding: 0.4rem 0.8rem; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;" title="{{ 'Demote' if user['is_admin'] else 'Promote to Admin' }}">
+                      <i class="fas fa-{{ 'arrow-down' if user['is_admin'] else 'crown' }}"></i> {{ 'Demote' if user['is_admin'] else 'Promote' }}
+                    </button>
+                  </form>
+                  <!-- Ban/Unban -->
+                  {% if user['is_banned'] %}
+                  <form action="{{ url_for('admin.unban_user', user_id=user['id']) }}" method="post" style="display: inline;">
+                    <button type="submit" style="padding: 0.4rem 0.8rem; background: rgba(0,200,100,0.2); color: #00cc6a; border: 1px solid rgba(0,200,100,0.3); border-radius: 6px; cursor: pointer; font-size: 0.8rem;" title="Unban User">
+                      <i class="fas fa-unlock"></i> Unban
+                    </button>
+                  </form>
+                  {% else %}
+                  <form action="{{ url_for('admin.ban_user', user_id=user['id']) }}" method="post" style="display: inline;">
+                    <button type="submit" style="padding: 0.4rem 0.8rem; background: rgba(255,150,0,0.2); color: #ff9600; border: 1px solid rgba(255,150,0,0.3); border-radius: 6px; cursor: pointer; font-size: 0.8rem;" title="Ban User">
+                      <i class="fas fa-ban"></i> Ban
+                    </button>
+                  </form>
+                  {% endif %}
+                  <!-- Delete -->
+                  <form action="{{ url_for('admin.delete_user', user_id=user['id']) }}" method="post" style="display: inline;" onsubmit="return confirm('Delete {{ user.username }}? This cannot be undone.');">
+                    <button type="submit" style="padding: 0.4rem 0.8rem; background: rgba(255,50,50,0.2); color: #ff3333; border: 1px solid rgba(255,50,50,0.3); border-radius: 6px; cursor: pointer; font-size: 0.8rem;" title="Delete User">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                  {% else %}
+                  <span style="color: rgba(255,255,255,0.3); font-size: 0.8rem;">You</span>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" style="text-align: center; color: rgba(255,255,255,0.4); padding: 3rem;">No users found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: LISTINGS ──────────────────────────────────── -->
+  <div id="tab-items" class="admin-tab-content" style="display:none;">
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0; font-size: 1.5rem;"><i class="fas fa-box" style="color: #00c8ff;"></i> Item Management</h2>
+        <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+          <span style="background: rgba(0,255,136,0.1); color: #00ff88; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem;">Active: {{ item_stats.active }}</span>
+          <span style="background: rgba(255,150,0,0.1); color: #ff9600; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem;">Flagged: {{ item_stats.flagged }}</span>
+          <span style="background: rgba(0,200,255,0.1); color: #00c8ff; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem;">Sold: {{ item_stats.sold }}</span>
+        </div>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Seller</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Listed</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            <tr>
+              <td style="font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item['title'] }}</td>
+              <td style="color: rgba(255,255,255,0.7);">{{ item['owner_name'] }}</td>
+              <td style="color: #ff007f; font-weight: 700;">₹{{ "%.0f"|format(item['price']) }}</td>
+              <td>
+                {% if item['status'] == 'available' %}
+                <span style="background: rgba(0,255,136,0.1); color: #00ff88; padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.8rem;">Available</span>
+                {% elif item['status'] == 'sold' %}
+                <span style="background: rgba(0,200,255,0.1); color: #00c8ff; padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.8rem;">Sold</span>
+                {% elif item['status'] == 'flagged' %}
+                <span style="background: rgba(255,150,0,0.2); color: #ff9600; padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700;">⚠ Flagged</span>
+                {% endif %}
+              </td>
+              <td style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">{{ item['created_at'].strftime('%b %d') if item['created_at'] else '' }}</td>
+              <td>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                  {% if item['status'] == 'available' %}
+                  <form action="{{ url_for('admin.flag_item', item_id=item['id']) }}" method="post" style="display: inline;">
+                    <button type="submit" style="padding: 0.4rem 0.8rem; background: rgba(255,150,0,0.2); color: #ff9600; border: 1px solid rgba(255,150,0,0.3); border-radius: 6px; cursor: pointer; font-size: 0.8rem;" title="Flag Item">
+                      <i class="fas fa-flag"></i> Flag
+                    </button>
+                  </form>
+                  <form action="{{ url_for('admin.mark_sold', item_id=item['id']) }}" method="post" style="display: inline;">
+                    <button type="submit" style="padding: 0.4rem 0.8rem; background: rgba(0,200,255,0.15); color: #00c8ff; border: 1px solid rgba(0,200,255,0.3); border-radius: 6px; cursor: pointer; font-size: 0.8rem;" title="Mark Sold">
+                      <i class="fas fa-check"></i> Mark Sold
+                    </button>
+                  </form>
+                  {% endif %}
+                  <form action="{{ url_for('admin.delete_item', item_id=item['id']) }}" method="post" style="display: inline;" onsubmit="return confirm('Remove this listing?');">
+                    <button type="submit" style="padding: 0.4rem 0.8rem; background: rgba(255,50,50,0.2); color: #ff3333; border: 1px solid rgba(255,50,50,0.3); border-radius: 6px; cursor: pointer; font-size: 0.8rem;" title="Delete Item">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" style="text-align: center; color: rgba(255,255,255,0.4); padding: 3rem;">No listings found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: REPORTS ───────────────────────────────────── -->
+  <div id="tab-reports" class="admin-tab-content" style="display:none;">
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <h2 style="margin: 0; font-size: 1.5rem;"><i class="fas fa-flag" style="color: #ff3333;"></i> Report System</h2>
+        <p style="margin: 0.4rem 0 0; color: rgba(255,255,255,0.5); font-size: 0.9rem;">{{ pending_reports }} pending reports requiring action</p>
+      </div>
+      {% if reports %}
+      <div style="display: flex; flex-direction: column; gap: 0;">
+        {% for report in reports %}
+        <div style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 240px;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+              {% if report['reported_username'] %}
+              <span style="background: rgba(255,50,50,0.15); color: #ff3333; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">USER REPORT</span>
+              <strong>{{ report['reported_username'] }}</strong>
+              {% elif report['reported_item_title'] %}
+              <span style="background: rgba(255,150,0,0.15); color: #ff9600; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">ITEM REPORT</span>
+              <strong>{{ report['reported_item_title'] }}</strong>
+              {% endif %}
+            </div>
+            <p style="margin: 0; color: rgba(255,255,255,0.8); font-size: 0.95rem;">{{ report['reason'] }}</p>
+            <p style="margin: 0.3rem 0 0; color: rgba(255,255,255,0.4); font-size: 0.82rem;">Reported by <strong style="color: rgba(255,255,255,0.7);">{{ report['reporter_name'] }}</strong> · {{ report['created_at'].strftime('%b %d, %Y') if report['created_at'] else '' }}</p>
+          </div>
+          <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
+            <form action="{{ url_for('admin.resolve_report', report_id=report['id']) }}" method="post">
+              <button type="submit" style="padding: 0.5rem 1rem; background: rgba(0,255,136,0.15); color: #00ff88; border: 1px solid rgba(0,255,136,0.3); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+                <i class="fas fa-check"></i> Dismiss
+              </button>
+            </form>
+            {% if report['reported_user_id'] %}
+            <form action="{{ url_for('admin.report_ban_user', report_id=report['id']) }}" method="post" onsubmit="return confirm('Ban this user?');">
+              <button type="submit" style="padding: 0.5rem 1rem; background: rgba(255,150,0,0.2); color: #ff9600; border: 1px solid rgba(255,150,0,0.3); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+                <i class="fas fa-ban"></i> Ban User
+              </button>
+            </form>
+            {% endif %}
+            {% if report['reported_item_id'] %}
+            <form action="{{ url_for('admin.report_delete_item', report_id=report['id']) }}" method="post" onsubmit="return confirm('Delete this item?');">
+              <button type="submit" style="padding: 0.5rem 1rem; background: rgba(255,50,50,0.2); color: #ff3333; border: 1px solid rgba(255,50,50,0.3); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+                <i class="fas fa-trash"></i> Delete Item
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="text-align: center; padding: 4rem 2rem; color: rgba(255,255,255,0.4);">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+        <h3 style="font-size: 1.5rem; color: #00ff88; margin-bottom: 0.5rem;">All Clear!</h3>
+        <p>No pending reports.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── TAB: CHAT MONITOR ──────────────────────────────── -->
+  <div id="tab-chats" class="admin-tab-content" style="display:none;">
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <h2 style="margin: 0; font-size: 1.5rem;"><i class="fas fa-comment-alt" style="color: #ffb800;"></i> Chat Monitor</h2>
+        <p style="margin: 0.4rem 0 0; color: rgba(255,255,255,0.4); font-size: 0.85rem;">⚠️ Handle with care — use only for safety moderation.</p>
+      </div>
+      <div style="max-height: 600px; overflow-y: auto; padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1rem;">
+        {% for msg in recent_chats %}
+        <div style="display: flex; gap: 1rem; align-items: flex-start; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #7928ca, #ff007f); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; flex-shrink: 0;">{{ msg['sender_name'][0]|upper }}</div>
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem;">
+              <span style="font-weight: 700; font-size: 0.95rem;">{{ msg['sender_name'] }}</span>
+              <span style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">→</span>
+              <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">{{ msg['recipient_name'] }}</span>
+              <span style="color: rgba(255,255,255,0.3); font-size: 0.78rem; margin-left: auto;">{{ msg['created_at'].strftime('%b %d, %H:%M') if msg['created_at'] else '' }}</span>
+            </div>
+            <p style="margin: 0; color: rgba(255,255,255,0.8); font-size: 0.92rem; line-height: 1.5;">{{ msg['content'] }}</p>
+          </div>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: rgba(255,255,255,0.4);">No messages on the platform yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: WISHLIST TRENDS ───────────────────────────── -->
+  <div id="tab-wishlist" class="admin-tab-content" style="display:none;">
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div style="padding: 1.5rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <h2 style="margin: 0; font-size: 1.5rem;"><i class="fas fa-heart" style="color: #ff007f;"></i> Wishlist Trends</h2>
+        <p style="margin: 0.4rem 0 0; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Most wanted items on the marketplace</p>
+      </div>
+      <div style="padding: 1.5rem 2rem;">
+        {% if wishlist_popular %}
+        <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+          {% for item in wishlist_popular %}
+          <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
+            <div style="font-size: 1.5rem; font-weight: 900; font-family: var(--font-display); color: rgba(255,255,255,0.2); width: 30px; text-align: center;">{{ loop.index }}</div>
+            <a href="{{ url_for('main.item_detail', item_id=item['id']) }}" style="flex: 1; font-weight: 600; color: white; text-decoration: none; font-size: 1rem;">{{ item['title'] }}</a>
+            <div style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,0,127,0.15); color: #ff007f; padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">
+              <i class="fas fa-heart" style="font-size: 0.75rem;"></i> {{ item['wish_count'] }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: rgba(255,255,255,0.4);">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">❤️</div>
+          <p>No wishlist data yet.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<script>
+  function showTab(tabId) {
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+    document.getElementById(tabId).style.display = 'block';
+
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+      btn.style.background = 'rgba(255,255,255,0.08)';
+      btn.style.color = 'rgba(255,255,255,0.7)';
+    });
+    event.currentTarget.style.background = 'linear-gradient(135deg, #ff007f, #7928ca)';
+    event.currentTarget.style.color = 'white';
+  }
+
+  function filterTable(inputId, tableId) {
+    const filter = document.getElementById(inputId).value.toLowerCase();
+    const rows = document.querySelectorAll('#' + tableId + ' tbody tr');
+    rows.forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+    });
+  }
+
+  // Restore tab from URL hash
+  window.addEventListener('load', () => {
+    const hash = window.location.hash;
+    if (hash === '#items') showTabById('tab-items');
+    else if (hash === '#reports') showTabById('tab-reports');
+    else if (hash === '#chats') showTabById('tab-chats');
+    else if (hash === '#wishlist') showTabById('tab-wishlist');
+  });
+
+  function showTabById(tabId) {
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+    const el = document.getElementById(tabId);
+    if (el) el.style.display = 'block';
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+      btn.style.background = 'rgba(255,255,255,0.08)';
+      btn.style.color = 'rgba(255,255,255,0.7)';
+    });
+    const idx = ['tab-users','tab-items','tab-reports','tab-chats','tab-wishlist'].indexOf(tabId);
+    const btns = document.querySelectorAll('.admin-tab-btn');
+    if (btns[idx]) {
+      btns[idx].style.background = 'linear-gradient(135deg, #ff007f, #7928ca)';
+      btns[idx].style.color = 'white';
+    }
+  }
+</script>
+{% endblock %}
