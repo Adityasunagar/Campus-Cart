@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Campus Cart{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+</head>
+<body>
+  <header class="navbar">
+    <a class="nav-logo" href="{{ url_for('main.index') }}">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="CampusCart Logo" class="nav-logo-img">
+      <span class="nav-logo-text">Campus Cart</span>
+    </a>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="nav-links" id="navLinks">
+      <a href="{{ url_for('main.index') }}">Browse</a>
+      {% if current_user %}
+        <a href="{{ url_for('main.add_item') }}">List item</a>
+        <a href="{{ url_for('chat.inbox') }}">Chat</a>
+        <a href="{{ url_for('main.wishlist') }}">Wishlist</a>
+        {% if current_user['is_admin'] %}
+          <a href="{{ url_for('admin.admin_dashboard') }}">Admin</a>
+        {% endif %}
+        <a href="{{ url_for('profile.index') }}">Profile</a>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Login</a>
+        <a href="{{ url_for('auth.register') }}">Register</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="page-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="flash-grid">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p>Campus Cart &mdash; buy, sell and chat with your campus community.</p>
+  </footer>
+
+  <script>
+    // Hamburger toggle
+    document.getElementById('navHamburger').addEventListener('click', function() {
+      document.getElementById('navLinks').classList.toggle('nav-open');
+      this.classList.toggle('active');
+    });
+    // Close on link click (mobile)
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      a.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.remove('nav-open');
+        document.getElementById('navHamburger').classList.remove('active');
+      });
+    });
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 30);
+    });
+  </script>
+</body>
+</html>
+

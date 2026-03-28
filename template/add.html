@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Edit' if item else 'List' }} Item — Campus Cart{% endblock %}
+
+{% block content %}
+<section class="section form-section">
+  <div class="card card-form" style="max-width: 600px;">
+    <h2>{{ 'Edit item' if item else 'List a new item' }}</h2>
+    <form method="post" id="addItemForm" onsubmit="prepareSubmit(event)">
+      <div class="field-group">
+        <label for="title">Title</label>
+        <input id="title" name="title" type="text" class="input" placeholder="Item title"
+          value="{{ item['title'] if item else '' }}" required>
+      </div>
+      <div class="field-group">
+        <label for="price">Price</label>
+        <input id="price" name="price" type="text" class="input" placeholder="e.g. 499"
+          value="{{ item['price'] if item else '' }}" required>
+      </div>
+      <div class="field-group">
+        <label for="category">Category</label>
+        <select id="category" name="category" class="input"
+          style="appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.5)%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; cursor: pointer;">
+          {% if categories %}
+          {% for cat in categories %}
+            {% if cat.get('subcategories') %}
+            <optgroup label="{{ cat.label }}">
+              {% for subcat in cat.subcategories %}
+              <option value="{{ subcat }}" {% if item and item.get('category')==subcat %}selected{% endif %}>{{ subcat }}</option>
+              {% endfor %}
+            </optgroup>
+            {% else %}
+            <option value="{{ cat.key }}" {% if item and item.get('category')==cat.key %}selected{% endif %}>{{ cat.label }}</option>
+            {% endif %}
+          {% endfor %}
+          {% else %}
+          <option value="Books">Books & Study Materials</option>
+          <option value="Electronics">Electronics & Gadgets</option>
+          <option value="Gaming">Gaming</option>
+          <option value="Other">Other</option>
+          {% endif %}
+        </select>
+      </div>
+      <div class="field-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" class="textarea"
+          placeholder="Describe the item, condition, and availability." rows="4"
+          required>{{ item['description'] if item else '' }}</textarea>
+      </div>
+
+      <!-- User requested Product Image Upload UI -->
+      <style>
+        .upload-zone {
+          border: 2px dashed var(--clr-border);
+          border-radius: var(--radius-md);
+          text-align: center;
+          padding: 2rem;
+          background: rgba(0, 0, 0, 0.2);
+          cursor: pointer;
+          transition: all 0.3s;
+          margin-bottom: 1.5rem;
+        }
+
+        .upload-zone:hover {
+          border-color: var(--clr-primary);
+          background: rgba(0, 0, 0, 0.3);
+        }
+
+        .upload-empty svg {
+          color: var(--clr-accent);
+          margin-bottom: 1rem;
+        }
+
+        .upload-title {
+          font-weight: 600;
+          font-size: 1.1rem;
+        }
+
+        .upload-sub {
+          color: var(--clr-muted);
+          font-size: 0.9rem;
+        }
+
+        .upload-link {
+          color: var(--clr-primary);
+          text-decoration: underline;
+          pointer-events: auto;
+        }
+
+        .upload-preview {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 1rem;
+          justify-content: center;
+        }
+
+        .preview-img-container {
+          position: relative;
+          width: 80px;
+          height: 80px;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+
+        .preview-img-container img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .preview-img-container button {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          background: rgba(0, 0, 0, 0.6);
+          border: none;
+          color: white;
+          border-radius: 50%;
+          width: 20px;
+          height: 20px;
+          cursor: pointer;
+          font-size: 10px;
+        }
+      </style>
+
+      <div class="field-group">
+        <label>Product Images</label>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imageInput').click()">
+          <input type="file" id="imageInput" accept="image/*" multiple style="display:none;">
+          <div class="upload-empty" id="uploadEmpty">
+            <div class="upload-icon-wrap">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+              </svg>
+            </div>
+            <p class="upload-title">Drop your images here</p>
+            <p class="upload-sub">or <span class="upload-link">browse files</span></p>
+            <p class="upload-hint" style="font-size: 0.8rem; color: #666; margin-top:0.5rem;">JPG, PNG, WEBP up to 10MB
+            </p>
+          </div>
+        </div>
+
+        <div class="upload-preview" id="uploadPreview" style="display:none;"></div>
+      </div>
+
+      <div class="divider-text" style="text-align:center; color:var(--clr-muted); margin-bottom:1rem;"><span>or use
+          camera</span></div>
+
+      <button type="button" class="btn btn-outline" id="openCameraBtn" onclick="startCamera()"
+        style="width:100%; margin-bottom:1.5rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+          <circle cx="12" cy="13" r="4" />
+        </svg>
+        Open Camera
+      </button>
+
+      <div class="camera-container" id="cameraContainer" style="display:none; margin-bottom:1.5rem;">
+        <video id="videoElement" autoplay playsinline style="width:100%; border-radius:12px; background:#000;"></video>
+        <div class="camera-controls" style="margin-top:0.5rem; display:flex; gap:1rem; justify-content:center;">
+          <button type="button" class="btn btn-primary" onclick="capturePhoto()">Capture</button>
+          <button type="button" class="btn btn-danger" onclick="stopCamera()">Cancel</button>
+        </div>
+        <canvas id="canvasElement" style="display:none;"></canvas>
+      </div>
+
+      <div id="hiddenInputsContainer"></div>
+
+      <button class="btn btn-primary" type="submit" style="width: 100%; margin-top: 1rem;">
+        {{ 'Save changes' if item else 'Publish listing' }}
+      </button>
+    </form>
+  </div>
+</section>
+
+<script>
+  let imageList = [];
+  const uploadZone = document.getElementById('uploadZone');
+  const imageInput = document.getElementById('imageInput');
+  const uploadEmpty = document.getElementById('uploadEmpty');
+  const uploadPreview = document.getElementById('uploadPreview');
+  const hiddenInputsContainer = document.getElementById('hiddenInputsContainer');
+
+  // File Upload Logic
+  imageInput.addEventListener('change', function (e) {
+    Array.from(e.target.files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        imageList.push(event.target.result);
+        renderPreviews();
+      }
+      reader.readAsDataURL(file);
+    });
+  });
+
+  function removeImage(index) {
+    imageList.splice(index, 1);
+    renderPreviews();
+  }
+
+  function renderPreviews() {
+    if (imageList.length > 0) {
+      uploadEmpty.style.display = 'none';
+      uploadPreview.style.display = 'flex';
+    } else {
+      uploadEmpty.style.display = 'block';
+      uploadPreview.style.display = 'none';
+    }
+
+    uploadPreview.innerHTML = '';
+    hiddenInputsContainer.innerHTML = '';
+
+    imageList.forEach((b64, index) => {
+      uploadPreview.innerHTML += `
+      <div class="preview-img-container" onclick="event.stopPropagation()">
+        <img src="${b64}">
+        <button type="button" onclick="removeImage(${index})">X</button>
+      </div>
+    `;
+      hiddenInputsContainer.innerHTML += `<input type="hidden" name="images" value="${b64}">`;
+    });
+  }
+
+  // Camera Logic
+  const videoElement = document.getElementById('videoElement');
+  const canvasElement = document.getElementById('canvasElement');
+  const cameraContainer = document.getElementById('cameraContainer');
+  let stream = null;
+
+  async function startCamera() {
+    cameraContainer.style.display = 'block';
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      videoElement.srcObject = stream;
+    } catch (err) {
+      alert("Camera access denied or unavailable.");
+      stopCamera();
+    }
+  }
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    cameraContainer.style.display = 'none';
+  }
+
+  function capturePhoto() {
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
+    const ctx = canvasElement.getContext('2d');
+    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+    const dataPath = canvasElement.toDataURL('image/jpeg', 0.8);
+    imageList.push(dataPath);
+    renderPreviews();
+    stopCamera();
+  }
+
+  // Drag & Drop
+  uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.borderColor = 'var(--clr-primary)'; });
+  uploadZone.addEventListener('dragleave', (e) => { e.preventDefault(); uploadZone.style.borderColor = 'var(--clr-border)'; });
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.style.borderColor = 'var(--clr-border)';
+    if (e.dataTransfer.files) {
+      Array.from(e.dataTransfer.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          imageList.push(event.target.result);
+          renderPreviews();
+        }
+        reader.readAsDataURL(file);
+      });
+    }
+  });
+</script>
+{% endblock %}
