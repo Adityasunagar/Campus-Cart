@@ -10,7 +10,8 @@ chat_bp = Blueprint('chat', __name__, url_prefix='/chat')
 @login_required
 def inbox():
     partners = Message.list_partners(session['user_id'])
-    return render_template('chat.html', partners=partners, messages=None, active=None, current_user_id=session['user_id'])
+    unread_counts = Message.get_all_unread_counts(session['user_id'])
+    return render_template('chat.html', partners=partners, messages=None, active=None, current_user_id=session['user_id'], unread_counts=unread_counts)
 
 
 @chat_bp.route('/<int:recipient_id>')
@@ -25,7 +26,11 @@ def conversation(recipient_id):
         flash('Student not found.', 'warning')
         return redirect(url_for('chat.inbox'))
 
+    # Mark messages from this user as read
+    Message.mark_as_read(session['user_id'], recipient_id)
+
     partners = Message.list_partners(session['user_id'])
     messages = Message.list_conversation(session['user_id'], recipient_id)
-    return render_template('chat.html', partners=partners, messages=messages, active=recipient, current_user_id=session['user_id'])
+    unread_counts = Message.get_all_unread_counts(session['user_id'])
+    return render_template('chat.html', partners=partners, messages=messages, active=recipient, current_user_id=session['user_id'], unread_counts=unread_counts)
 

@@ -13,7 +13,16 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
-        user = User.authenticate(email, password)
+        
+        if not email or not password:
+            flash('Please enter both email and password.', 'danger')
+            return render_template('login.html')
+        
+        try:
+            user = User.authenticate(email, password)
+        except Exception as e:
+            flash(f'Login error: {str(e)}', 'danger')
+            return render_template('login.html')
 
         if user == 'banned':
             flash('Your account has been banned. Contact admin for support.', 'danger')
@@ -25,12 +34,18 @@ def login():
                 flash('Admins must log in via the admin portal.', 'warning')
                 return redirect(url_for('auth.login'))
 
-            session.clear()
-            session['user_id'] = user['id']
-            session['is_admin'] = False
-            User.set_online(user['id'], True)
-            flash(f"Welcome back, {user['username']}!", 'success')
-            return redirect(url_for('main.index'))
+            try:
+                session.clear()
+                session.permanent = True
+                session['user_id'] = user['id']
+                session['username'] = user['username']
+                session['is_admin'] = False
+                User.set_online(user['id'], True)
+                flash(f"Welcome back, {user['username']}!", 'success')
+                return redirect(url_for('main.index'))
+            except Exception as e:
+                flash(f'Session error: {str(e)}', 'danger')
+                return render_template('login.html')
 
         flash('Invalid email or password.', 'danger')
 

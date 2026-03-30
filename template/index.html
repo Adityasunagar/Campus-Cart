@@ -5,7 +5,7 @@
 {% block content %}
 <section class="section hero-section">
   <div class="hero-copy">
-    <p class="eyebrow">Student Marketplace</p>
+    <p class="eyebrow" style="font-size: 2rem; letter-spacing: 3px; margin-bottom: 1.5rem;">Student Marketplace</p>
     <h1>Buy, sell and connect with classmates.</h1>
     <p class="hero-text">Find study material, gadgets, accessories and more from students around campus. List your own items in seconds.</p>
     <div class="hero-actions">
@@ -60,7 +60,7 @@
           <a href="{{ url_for('main.index') }}" class="filter-clear-all">Clear all</a>
         </div>
 
-        <form id="filterForm" action="{{ url_for('main.index') }}" method="get" class="filter-form">
+        <form id="filterForm" action="{{ url_for('main.index') }}#market" method="get" class="filter-form">
           {% if query %}
           <input type="hidden" name="q" value="{{ query }}">
           {% endif %}
@@ -785,9 +785,9 @@
 
 <script>
 function setPrice(min, max) {
-  document.queryS
-  or('input[name="min_price"]').value = min;
+  document.querySelector('input[name="min_price"]').value = min;
   document.querySelector('input[name="max_price"]').value = max || '';
+  document.getElementById('filterForm').submit();
 }
 
 function toggleFilters() {

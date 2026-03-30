@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS messages (
     sender_id INTEGER NOT NULL REFERENCES users(id),
     recipient_id INTEGER NOT NULL REFERENCES users(id),
     content TEXT NOT NULL,
+    is_read INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -65,6 +66,7 @@ class DBWrapper:
         self.conn = conn
 
     def execute(self, sql, params=None):
+        sql = sql.replace('?', '%s')
         cur = self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         if params is not None:
             cur.execute(sql, params)
@@ -103,6 +105,7 @@ def init_db():
                 cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo VARCHAR(255)")
                 cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20)")
                 cur.execute("ALTER TABLE items ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'Other'")
+                cur.execute("ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_read INTEGER NOT NULL DEFAULT 0")
                 # Seed admin user if no users exist
                 cur.execute("SELECT COUNT(*) FROM users")
                 row = cur.fetchone()

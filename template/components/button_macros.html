@@ -1,0 +1,20 @@
+{% macro action_link(icon_class, label, url, btn_class='btn-secondary', extra_style='') %}
+<a href="{{ url }}" class="btn {{ btn_class }}" style="{{ extra_style }}">
+  <i class="fas {{ icon_class }}" style="font-size:16px; margin-right:7px;"></i> {{ label }}
+</a>
+{% endmacro %}
+
+{% macro action_button(icon_class, label, btn_class='btn-primary', extra_style='', type='button') %}
+<button type="{{ type }}" class="btn {{ btn_class }}" style="{{ extra_style }}">
+  <i class="fas {{ icon_class }}" style="font-size:16px; margin-right:7px;"></i> {{ label }}
+</button>
+{% endmacro %}
+
+{% macro report_form(item_id) %}
+<form action="{{ url_for('main.report_item', item_id=item_id) }}" method="post" style="display:flex; align-items:center; gap:0.5rem;">
+  <input type="text" name="reason" placeholder="Report reason" required class="input" style="width:195px;">
+  <button type="submit" class="btn btn-danger" style="background:#ff2a55; border:none; color:white; padding:0.5rem 1rem;">
+    <i class="fas fa-flag" style="font-size:14px; margin-right:6px;"></i> Report Item
+  </button>
+</form>
+{% endmacro %}

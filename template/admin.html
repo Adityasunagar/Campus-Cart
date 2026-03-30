@@ -148,7 +148,7 @@
                 if user['created_at'] else 'N/A' }}</td>
               <td>
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                  {% if user['id'] != current_user['id'] %}
+                  {% if current_user and user['id'] != current_user['id'] %}
                   <!-- Promote/Demote -->
                   <form action="{{ url_for('admin.toggle_role', user_id=user['id']) }}" method="post"
                     style="display: inline;">

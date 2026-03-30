@@ -44,6 +44,11 @@ class Item:
     @staticmethod
     def delete(item_id):
         db = get_db()
+        # Resolve and disassociate any reports before item deletion to avoid FK violations.
+        db.execute(
+            "UPDATE reports SET reported_item_id = NULL, status = 'resolved' WHERE reported_item_id = %s",
+            (item_id,),
+        )
         db.execute("DELETE FROM item_images WHERE item_id = %s", (item_id,))
         db.execute("DELETE FROM wishlist WHERE item_id = %s", (item_id,))
         db.execute("DELETE FROM items WHERE id = %s", (item_id,))

@@ -42,6 +42,10 @@ def admin_dashboard():
     item_stats = Item.get_stats()
     pending_reports = Report.count_pending()
 
+    current_user = None
+    if session.get('user_id'):
+        current_user = User.find_by_id(session['user_id'])
+
     return render_template(
         'admin.html',
         users=users,
@@ -50,6 +54,7 @@ def admin_dashboard():
         user_stats=user_stats,
         item_stats=item_stats,
         pending_reports=pending_reports,
+        current_user=current_user,
     )
 
 

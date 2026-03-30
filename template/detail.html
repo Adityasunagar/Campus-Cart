@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% import 'components/button_macros.html' as btn %}
 
 {% block title %}{{ item['title'] }} — Campus Cart{% endblock %}
 
@@ -34,30 +35,39 @@
       </span>
     </div>
 
-    <div class="detail-actions" style="display:flex; gap:1rem; align-items:center; flex-wrap: wrap;">
+    <div class="detail-actions" style="display:flex; gap:0.75rem; align-items:center; flex-wrap: wrap;">
       {% if current_user and current_user['id'] != item['owner_id'] %}
-        <a class="btn btn-secondary" href="{{ url_for('chat.conversation', recipient_id=item['owner_id']) }}" style="background: linear-gradient(135deg, #7928ca, #ff007f); box-shadow: 0 4px 15px rgba(255, 0, 127, 0.3);">💬 Message Seller</a>
+        {{ btn.action_link('fa-comments', 'Message Seller', url_for('chat.conversation', recipient_id=item['owner_id']), 'btn-secondary', 'background: linear-gradient(135deg, #7928ca, #ff007f); box-shadow: 0 4px 15px rgba(255, 0, 127, 0.3);') }}
         {% if item.owner_phone %}
-        <a class="btn btn-secondary" href="tel:{{ item.owner_phone }}" title="Call {{ item.owner_phone }}" style="background: linear-gradient(135deg, #0ba360, #3cba92); border:none; box-shadow: 0 4px 15px rgba(11, 163, 96, 0.3);">📞 Call Seller</a>
+          {{ btn.action_link('fa-phone-alt', 'Call Seller', 'tel:' ~ item.owner_phone, 'btn-secondary', 'background: linear-gradient(135deg, #0ba360, #3cba92); border:none; box-shadow: 0 4px 15px rgba(11, 163, 96, 0.3);') }}
         {% endif %}
+        {{ btn.report_form(item['id']) }}
       {% endif %}
 
       {% if current_user %}
         {% if item.status == 'available' and current_user['id'] != item['owner_id'] %}
           <form action="{{ url_for('main.buy_item', item_id=item['id']) }}" method="post" style="display:inline-block;">
-            <button class="btn btn-primary" style="background: linear-gradient(135deg, #00ff88, #00b866); box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);">🛒 Buy Now</button>
+            <button class="btn btn-primary" style="background: linear-gradient(135deg, #00ff88, #00b866); box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);">
+              <i class="fas fa-shopping-cart" style="font-size:16px; margin-right:7px;"></i> Buy Now
+            </button>
           </form>
         {% elif item.status == 'sold' %}
-          <span class="btn" style="background: rgba(255,255,255,0.1); cursor:not-allowed;">✓ Item Sold</span>
+          <span class="btn" style="background: rgba(255,255,255,0.1); cursor:not-allowed;">
+            <i class="fas fa-check-circle" style="font-size:16px; margin-right:7px;"></i> Item Sold
+          </span>
         {% endif %}
 
         {% if in_wishlist %}
           <form action="{{ url_for('main.remove_wishlist', item_id=item['id']) }}" method="post">
-            <button class="btn btn-outline" style="border-color:var(--clr-primary); color:var(--clr-primary);">❤️ Remove Wishlist</button>
+            <button class="btn btn-outline" style="border-color:var(--clr-primary); color:var(--clr-primary);">
+              <i class="fas fa-heart-broken" style="margin-right:6px;"></i> Remove from wishlist
+            </button>
           </form>
         {% elif current_user['id'] != item['owner_id'] %}
           <form action="{{ url_for('main.add_wishlist', item_id=item['id']) }}" method="post">
-            <button class="btn btn-primary">🤍 Save to wishlist</button>
+            <button class="btn btn-primary">
+              <i class="fas fa-heart" style="margin-right:6px;"></i> Save to wishlist
+            </button>
           </form>
         {% endif %}
       {% else %}
